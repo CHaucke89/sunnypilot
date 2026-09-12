@@ -7,6 +7,7 @@ See the LICENSE.md file in the root directory for more details.
 from opendbc.car.structs import car
 from enum import IntEnum
 
+import openpilot.cereal.messaging as messaging
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp, simple_button_item_sp, option_item_sp, LineSeparatorSP
@@ -95,6 +96,7 @@ class SteeringLayout(Widget):
       param="UseCustomSR",
       title=lambda: tr("Enable Custom Steer Ratio"),
       description=lambda: tr("Enable this to use a custom fixed steer ratio value instead of the learned value."),
+      callback=self._on_sr_toggled,
     )
     self._custom_sr = option_item_sp(
       param="CustomSR",
@@ -134,6 +136,24 @@ class SteeringLayout(Widget):
 
   def _set_current_panel(self, panel: PanelType):
     self._current_panel = panel
+
+  def _learned_steer_ratio(self) -> float | None:
+    dat = ui_state.params.get("LiveParametersV2")
+    if dat is None:
+      return None
+    try:
+      return messaging.log_from_bytes(dat).vehicleParameters.steerRatio
+    except Exception:
+      return None
+
+  def _on_sr_toggled(self, state: bool) -> None:
+    # seed the custom value from the learned steer ratio the first time the feature is enabled
+    if not state or ui_state.params.get("CustomSR") is not None:
+      return
+    sr = self._learned_steer_ratio()
+    if sr is None:
+      return
+    self._custom_sr.action_item.set_value(int(round(sr * 100)))
 
   def _update_state(self):
     super()._update_state()
