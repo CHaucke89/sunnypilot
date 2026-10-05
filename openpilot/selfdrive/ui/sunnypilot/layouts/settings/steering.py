@@ -103,7 +103,11 @@ class SteeringLayout(Widget):
       max_value=2000,
       value_change_step=5,
       use_float_scaling=True,
-      description="",
+      description=lambda: tr("Current learned steer ratio: ") + (
+                          f"{ui_state.sm['vehicleParameters'].steerRatio:.2f}" if ui_state.sm.valid['vehicleParameters'] else (
+                          f"{ui_state.CP.steerRatio:.2f}" if ui_state.CP is not None else tr("unknown")
+        )
+      ),
       label_callback=lambda sr: f'{sr / 100.0:.2f}'
     )
     self._nnlc_toggle = toggle_item_sp(
