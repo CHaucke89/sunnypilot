@@ -30,6 +30,7 @@ from openpilot.sunnypilot.mads.mads import ModularAssistiveDrivingSystem
 from openpilot.sunnypilot import get_sanitize_int_param
 from openpilot.sunnypilot.selfdrive.car.car_specific import CarSpecificEventsSP
 from openpilot.sunnypilot.selfdrive.car.intelligent_cruise_button_management.controller import IntelligentCruiseButtonManagement
+from openpilot.sunnypilot.selfdrive.selfdrived.always_on_bsm import AlwaysOnBsm
 from openpilot.sunnypilot.selfdrive.selfdrived.button_state_tracker import ButtonStateTracker
 from openpilot.sunnypilot.selfdrive.selfdrived.events import EventsSP
 
@@ -179,6 +180,7 @@ class SelfdriveD:
     self.car_events_sp = CarSpecificEventsSP(self.CP, self.CP_SP)
 
     self.button_state_tracker = ButtonStateTracker()
+    self.always_on_bsm = AlwaysOnBsm(self.CP)
 
   def update_events(self, CS):
     """Compute onroadEvents from carState"""
@@ -367,6 +369,9 @@ class SelfdriveD:
     elif self.sm['modelV2'].meta.laneChangeState in (LaneChangeState.laneChangeStarting,
                                                     LaneChangeState.laneChangeFinishing):
       self.events.add(EventName.laneChange)
+
+    # Always-on blind spot alert while lateral is inactive
+    self.always_on_bsm.update(CS, self.sm, self.events_sp)
 
     # Handle lane turn
     lane_turn_direction = self.sm['modelDataV2SP'].laneTurnDirection

@@ -274,3 +274,12 @@ sections:
       key: AutoLaneChangeTimer
       op: '>'
       value: 0
+  - key: AlwaysOnBsm
+    widget: toggle
+    title: Blind Spot Audible Alert
+    description: Play an audible alert when a vehicle is detected in the blind spot while the blinker is on, even if lateral
+      control is inactive.
+    enablement:
+    - type: capability
+      field: enable_bsm
+      equals: true
